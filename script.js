@@ -37,7 +37,7 @@ $(function(){
     //   （暂时先不管这个小bug。而且我发现选中文本，在选中文本的区域按下鼠标但不抬起鼠标，鼠标停留一会儿，然后就可以移动文本了，在Mac的WebStorm和印象笔记都试验成功。难道要
     //    在mouseup之前监听mouseover么）
     $(document).bind('mouseup', function(){
-
+        console.log("mouseup");
         let po = $("#selection-popover")[0]; // 每次都是仅有一个Popover存在
         if (po !== undefined) {
             po.parentNode.removeChild(po);
@@ -47,7 +47,7 @@ $(function(){
             /* 设置Popover空间的放置位置为光标结束位置 */
             /* 判定鼠标光标选中内容时的方向, 参考: https://stackoverflow.com/a/23512678 */
             let sel = window.getSelection();
-            console.log(sel);
+            // console.log(sel);
             if (sel.isCollapsed) {
                 return;
             }
@@ -85,13 +85,13 @@ $(function(){
                     rects = range.getClientRects();
                     x = rects[0].x + pageXOffset;
                     y = rects[0].y + pageYOffset - 40; // 40px是任选的, 只要不遮挡即可
-                    console.log("focusOffset equals node length.");
-                    console.log(x, y);
+                    // console.log("focusOffset equals node length.");
+                    // console.log(x, y);
                     /* 非边界条件的情况 */
                 } else {
                     x = rects[0].x + pageXOffset;
                     y = rects[0].y + pageYOffset - 40; // 40px是任选的, 只要不遮挡即可
-                    console.log(x, y);
+                    // console.log(x, y);
                 }
                 /* 向下移动鼠标来选中内容 */
             } else {
@@ -120,8 +120,8 @@ $(function(){
             });
 
             /* 创建Popover, 具体操作是在Body底部, 追加元素popover*/
-            $(popover).hide().appendTo("body").fadeIn(30); // jQuery fade in effect
+            $(popover).hide().appendTo("body").fadeIn(80); // jQuery fade in effect
             // console.log(sel.toString());
-        }, 30)
+        }, 1)
     });
 });
