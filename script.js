@@ -43,83 +43,85 @@ $(function(){
             po.parentNode.removeChild(po);
         }
 
-        /* 设置Popover空间的放置位置为光标结束位置 */
-        /* 判定鼠标光标选中内容时的方向, 参考: https://stackoverflow.com/a/23512678 */
-        let sel = window.getSelection();
-        console.log(sel);
-        if (sel.isCollapsed) {
-            return;
-        }
-        let position = sel.anchorNode.compareDocumentPosition(sel.focusNode);
-        // position == 0 if nodes are the same; position === Node.DOCUMENT_POSITION_PRECEDING === 2 表示节点比较结果为"在前"
-        let backward;
-        if ((!position && sel.anchorOffset > sel.focusOffset) || (position === Node.DOCUMENT_POSITION_PRECEDING)) {
-            backward = true;
-        } else {
-            backward = false;
-        }
-
-        /* 用一个"range"去罩住选中的光标终点(终点是focus, 起点是anchor)*/
-        let range = document.createRange();
-        let focusNode = window.getSelection().focusNode; // let node = window.getSelection().anchorNode.parentNode;
-        range.setStart(focusNode, sel.focusOffset); // node和offset
-        range.setEnd(focusNode, sel.focusOffset); // node和offset
-        let rects = range.getClientRects();
-
-        /* 创建弹框 (创建Popover) */
-        let popover = document.createElement("div");
-        $(popover).attr("id", "selection-popover");
-        popover.innerHTML = "<div class='circle-red circle'></div></div><div class='circle-green circle'></div><div class='circle-yellow circle'>";
-
-        /* 确定Popover的位置坐标 x, y 的值*/
-        let x;
-        let y;
-        /* 向上移动鼠标来选中内容 */
-        if (backward) {
-            /* 有一个边界条件需要单独处理: 选择的终点位置是介于一个段落和另一个段落之间的空白时 */
-            if (sel.focusOffset === focusNode.length) {
-                let boundaryNode = window.getSelection().focusNode.parentNode.nextElementSibling.childNodes[0];
-                range.setStart(boundaryNode, 0);
-                range.setEnd(boundaryNode, 0);
-                rects = range.getClientRects();
-                x = rects[0].x + pageXOffset;
-                y = rects[0].y + pageYOffset - 40; // 40px是任选的, 只要不遮挡即可
-                console.log("focusOffset equals node length.");
-                console.log(x, y);
-                /* 非边界条件的情况 */
-            } else {
-                x = rects[0].x + pageXOffset;
-                y = rects[0].y + pageYOffset - 40; // 40px是任选的, 只要不遮挡即可
-                console.log(x, y);
+        setTimeout(function () {
+            /* 设置Popover空间的放置位置为光标结束位置 */
+            /* 判定鼠标光标选中内容时的方向, 参考: https://stackoverflow.com/a/23512678 */
+            let sel = window.getSelection();
+            console.log(sel);
+            if (sel.isCollapsed) {
+                return;
             }
-            /* 向下移动鼠标来选中内容 */
-        } else {
-            /* 有一个边界条件需要单独处理: 选择的终点位置是介于一个段落和另一个段落之间的空白时 */
-            if (sel.focusOffset === 0) {
-                let boundaryNode = window.getSelection().focusNode.previousElementSibling.lastChild;
-                range.setStart(boundaryNode, boundaryNode.length);
-                range.setEnd(boundaryNode, boundaryNode.length);
-                rects = range.getClientRects();
-                x = rects[0].x + pageXOffset;
-                y = rects[0].y + pageYOffset + 20; // 20px也是任选的, 只要不遮挡即可
-                console.log("focusOffset equals 0.");
-                console.log(x, y);
-                /* 非边界条件的情况 */
+            let position = sel.anchorNode.compareDocumentPosition(sel.focusNode);
+            // position == 0 if nodes are the same; position === Node.DOCUMENT_POSITION_PRECEDING === 2 表示节点比较结果为"在前"
+            let backward;
+            if ((!position && sel.anchorOffset > sel.focusOffset) || (position === Node.DOCUMENT_POSITION_PRECEDING)) {
+                backward = true;
             } else {
-                x = rects[0].x + pageXOffset;
-                y = rects[0].y + pageYOffset + 20; // 20px也是任选的, 只要不遮挡即可
-                // console.log(x, y);
+                backward = false;
             }
-        }
-        $(popover).css({
-            "left": x + "px",
-            "top": y + "px",
-            position: "absolute",
-            display: "inline-block"
-        });
 
-        /* 创建Popover, 具体操作是在Body底部, 追加元素popover*/
-        $(popover).hide().appendTo("body").fadeIn(100); // jQuery fade in effect
-        // console.log(sel.toString());
+            /* 用一个"range"去罩住选中的光标终点(终点是focus, 起点是anchor)*/
+            let range = document.createRange();
+            let focusNode = window.getSelection().focusNode; // let node = window.getSelection().anchorNode.parentNode;
+            range.setStart(focusNode, sel.focusOffset); // node和offset
+            range.setEnd(focusNode, sel.focusOffset); // node和offset
+            let rects = range.getClientRects();
+
+            /* 创建弹框 (创建Popover) */
+            let popover = document.createElement("div");
+            $(popover).attr("id", "selection-popover");
+            popover.innerHTML = "<div class='circle-red circle'></div></div><div class='circle-green circle'></div><div class='circle-yellow circle'>";
+
+            /* 确定Popover的位置坐标 x, y 的值*/
+            let x;
+            let y;
+            /* 向上移动鼠标来选中内容 */
+            if (backward) {
+                /* 有一个边界条件需要单独处理: 选择的终点位置是介于一个段落和另一个段落之间的空白时 */
+                if (sel.focusOffset === focusNode.length) {
+                    let boundaryNode = window.getSelection().focusNode.parentNode.nextElementSibling.childNodes[0];
+                    range.setStart(boundaryNode, 0);
+                    range.setEnd(boundaryNode, 0);
+                    rects = range.getClientRects();
+                    x = rects[0].x + pageXOffset;
+                    y = rects[0].y + pageYOffset - 40; // 40px是任选的, 只要不遮挡即可
+                    console.log("focusOffset equals node length.");
+                    console.log(x, y);
+                    /* 非边界条件的情况 */
+                } else {
+                    x = rects[0].x + pageXOffset;
+                    y = rects[0].y + pageYOffset - 40; // 40px是任选的, 只要不遮挡即可
+                    console.log(x, y);
+                }
+                /* 向下移动鼠标来选中内容 */
+            } else {
+                /* 有一个边界条件需要单独处理: 选择的终点位置是介于一个段落和另一个段落之间的空白时 */
+                if (sel.focusOffset === 0) {
+                    let boundaryNode = window.getSelection().focusNode.previousElementSibling.lastChild;
+                    range.setStart(boundaryNode, boundaryNode.length);
+                    range.setEnd(boundaryNode, boundaryNode.length);
+                    rects = range.getClientRects();
+                    x = rects[0].x + pageXOffset;
+                    y = rects[0].y + pageYOffset + 20; // 20px也是任选的, 只要不遮挡即可
+                    console.log("focusOffset equals 0.");
+                    console.log(x, y);
+                    /* 非边界条件的情况 */
+                } else {
+                    x = rects[0].x + pageXOffset;
+                    y = rects[0].y + pageYOffset + 20; // 20px也是任选的, 只要不遮挡即可
+                    // console.log(x, y);
+                }
+            }
+            $(popover).css({
+                "left": x + "px",
+                "top": y + "px",
+                position: "absolute",
+                display: "inline-block"
+            });
+
+            /* 创建Popover, 具体操作是在Body底部, 追加元素popover*/
+            $(popover).hide().appendTo("body").fadeIn(30); // jQuery fade in effect
+            // console.log(sel.toString());
+        }, 30)
     });
 });
