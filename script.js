@@ -24,12 +24,7 @@
  */
 $(function(){
     /* Popover控件删除: 鼠标按下即检查是否有Popover控件, 有则清除Popover控件 */
-    $(document).mousedown(function () {
-        let po = $("#selection-popover")[0]; // 每次都是仅有一个Popover存在
-        if (po !== undefined) {
-            po.parentNode.removeChild(po);
-        }
-    });
+
 
     /* Popover控件生成: 鼠标抬起(或称鼠标松开)即检查是否有文本处于选中状态, 有则生成Popover控件 (文本选中事件, 用鼠标抬起事件来判定，这是目前采用的判定方法)*/
     // 有三种情况要注意，其实这三种情况本质是一种，重现这三种问题：
@@ -42,6 +37,11 @@ $(function(){
     //   （暂时先不管这个小bug。而且我发现选中文本，在选中文本的区域按下鼠标但不抬起鼠标，鼠标停留一会儿，然后就可以移动文本了，在Mac的WebStorm和印象笔记都试验成功。难道要
     //    在mouseup之前监听mouseover么）
     $(document).bind('mouseup', function(){
+
+        let po = $("#selection-popover")[0]; // 每次都是仅有一个Popover存在
+        if (po !== undefined) {
+            po.parentNode.removeChild(po);
+        }
 
         /* 设置Popover空间的放置位置为光标结束位置 */
         /* 判定鼠标光标选中内容时的方向, 参考: https://stackoverflow.com/a/23512678 */
