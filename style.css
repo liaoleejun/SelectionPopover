@@ -3,6 +3,9 @@
     background: white;
     border-radius: 5px;
     box-shadow: 1px 1px 5px 2px #D4D4D4;
+
+    position: absolute;
+    display: inline-block;
 }
 
 .circle {
