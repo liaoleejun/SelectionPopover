@@ -1,132 +1,142 @@
 /**
- * 鼠标按下或抬起, 先执行浏览器默认的行为: "拖蓝"渲染或移除, 而后再执行脚本
+ * 鼠标按下时删除Popover, 鼠标抬起或鼠标拖拽结束时生成Popover
  */
-$(function(){
+$(function() {
     /**
-     * 关于如何判定当前是否有文本处于选中状态
-     * Google搜索, 然后在StackOverflow中逛了一圈, 网友们说没有现成的API, 会不会很惊讶, 不过网友们提供了几种方案:
-     * 第一种: 监听鼠标抬起mouseup事件
-     * 第二种: 监听键盘键位抬起keyup事件
-     * 第三种: onselectionchange事件, 不过这个事件太灵敏, 但是可以配合keyup使用
-     * 第四种: onselect事件，这个事件仅能用于<input type="text"> 或 <textarea>这两种元素
-     * 注: Firefox是可以点击任意文本然后通过键盘shift+方向键来选中文本的, 这样也可以需要考虑. 还可以研究下移动设备的浏览器支持情况.
-     * 参考链接和(或)搜索过程
-     * 1. Google Search - javascript text selection event
-     * 2. https://stackoverflow.com/a/3545073 (2010年的回答了，现在已经2019年了)
-     * 3. [Keyboard selection] https://stackoverflow.com/questions/3545018/selected-text-event-trigger-in-javascript#comment3713463_3545073
-     * 4. [2019年的评论: selectionchange event] https://stackoverflow.com/questions/3545018/selected-text-event-trigger-in-javascript#comment95687289_3545073
-     * 5. https://developer.mozilla.org/en-US/docs/Web/API/Document/selectionchange_event
-     * 6. https://web.archive.org/web/20121221172621/http://mark.koli.ch/2009/09/use-javascript-and-jquery-to-get-user-selected-text.html
-     * 7. [2013年的一个网友指出onselectionchange事件 https://stackoverflow.com/a/4367567]
-     * 最终结论: 就2019年的前端技术，我打算采用"第一种: 监听鼠标抬起mouseup事件"就可以满足我现在的需求，因为我现在是在桌面电脑的浏览器的需求。(但是，
-     * 如果有时间我应该考虑接合四种这样更全面。而且，后续如果有新的技术出来，那就再考虑用新的技术。)
+     * 0. 想要达到的效果
+     * 本来的设想是就是跟随Selection, 发现实现起来复杂, 而且掌握起来也是逻辑不那
+     * 么清晰, 所以现在采用: 鼠标按下统一删除 Popover, 鼠标抬起或鼠标拖拽结束时
+     * 生成 Popover
      *
-     * Popover控件删除: 鼠标按下即检查是否有Popover控件, 有则清除Popover控件
-     * Popover控件生成: 鼠标抬起(或称鼠标松开)即检查是否有文本处于选中状态, 有则生成Popover控件 (文本选中事件, 用鼠标抬起事件来判定，这是目前采用的判定方法)
-     * mouseup鼠标抬起，首先检查是否有Popover控件, 有则清除Popover控件，然后setTimeout在1ms后再检查是否有文本处于选中状态,
-     * 有则生成Popover控件(文本选中事件, 用鼠标抬起事件来判定，这是目前采用的判定方法)
-     * popover我要达到的效果是：只要页面有文中选中，鼠标抬起时就生成popover；只要页面有popover，无论是否通过drag-and-drop操作后残留文本选中高亮，popover不会消失
      *
-     * 有三种情况要注意，其实这三种情况本质是一种，重现这三种问题：
-     * 1. 选中一个文本段落的中间任意部分
-     * 2. 段落开头
-     * 3. 段落结尾，如果有空格，比如说是英文的段落。
-     * 这三种情况的本质是:
-     * 文本选中，然后在文本选中区域按下鼠标但是不释放，此时文本选中状态是不会消失的；只有在鼠标释放时，文本选中状态才会消失
-     * 目前我想到的方法是把代码放入函数中，然后把函数放入timeout中，使得当鼠标抬起时先去执行清空高亮，这是我的想法，不知具体实施会怎样。
-     * （暂时先不管这个小bug。而且我发现
+     * 1. JS脚本的同步与异步
+     * 由于JS的脚本是单线程的同步操作，所以操作是要分前后的
      *
-     * 选中文本，在选中文本的区域按下鼠标但不抬起鼠标，鼠标停留一会儿，然后就可以移动文本了，在Mac的WebStorm和印象笔记都试验成功。难道要
-     * 在mouseup之前监听mouseover么）
+     *
+     * 2. addEventListener('mousedown', function(){})与浏览器默认行为执行顺序
+     * 按下鼠标会先执行document.addEventListener("mousedown", function (){})
+     * 的函数体, 再去执行浏览器默认行为比如清除文本拖蓝。mouseup和mousedown都是
+     * 默认是先执行用户写的脚本, 再执行浏览器默认行为。请查看我的实验证明。
+     *
+     *
+     * 3. Window.getSelection()
+     * The Window.getSelection() method returns a Selection object
+     * representing the range of text selected by the user or the
+     * current position of the caret. 参考自:
+     * https://developer.mozilla.org/en-US/docs/Web/API/Window/getSelection
+     * 如果想用addEventListener("mousedown", function (){})去证明,需要使用
+     * setTimeout，请查看我的实验证明的README.md, 加setTimeout的缘由。
+     *
+     * Window.getSelection()返回的type只有三种: None, Caret, Range. 参考自:
+     * https://developer.mozilla.org/en-US/docs/Web/API/Selection/type
+     * 就是说没有选中任何东西、选中了一个caret、选中了一个range范围这三种
+     *
+     * 什么时候window.getSelection.type会为None?
+     * Chrome目前发现两种情况, 一种是首次打开页面, 没有做任何操作时, 此时
+     * window.getSelection.type为None, 另一种是当页面有Selection且这个
+     * selection不是iframe里面的selection, 这时点击这个Selection, 抬
+     * 起鼠标后，window.getSelection.type就是None，值得指出的是，页面
+     * 非iframe的拖蓝选中时如果点击的是空白页而不是这个selection则
+     * window.getSelection.type为Caret
+     * Firefox目前只发现一种情况, 即是首次打开页面时
+     *
+     *
+     * 4. "draggable" global attribute
+     * draggable的取值只有三个: true, false, auto
+     * 如果某元素的draggable属性设置为true即draggable="true", 那么该元素可拖
+     * 拽, 如果某元素的draggable属性设置为false即draggable="false", 那么该元
+     * 素不可拖拽
+     * 如果draggable这个属性没有被设置, 那么它的默认值是auto, 这意味着拖拽行为遵循浏览器的
+     * 默认行为: 只有文本选择、图片、链接可以被拖拽. 参考自:
+     * https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/draggable
+     *
+     *
+     * 5. 鼠标按下, 要么选取, 要么拖拽, 二者之一
+     * 如果拖拽, 那么选取的范围不变, 任何时候都可以window.getSelection(),
+     * window.getSelection()和mouseup、mousedown无关, 无论是处于鼠标按下还是
+     * 鼠标抬起，还是鼠标当前没有任何操作, 均可以window.getSelection()
+     *
+     * 一种是是can be selected，另外一种是can be dragged. 一种用于选取，一种用
+     * 于拖拽. 按下鼠标，接下来的操作可分为两种，一种是拖蓝，一种是拖拽。拖蓝就是拖
+     * 动鼠标来选中文本，因为文本选中时是默认是蓝色，所以俗称为拖蓝。拖拽是指在按下
+     * 鼠标时光标指向的页面内容是可拖拽的，哪些页面内容可拖拽请
+     * 查看 "4. "draggable" global attribute"
+     *
+     *
+     * 6. 鼠标按下的那一刻, 如何判定按下的位置的内容是否是Draggable
+     * 按下鼠标的时候window.getSelection没有变化即为点击draggable的东西了
+     *
+     *
+     * 7. 在可拖拽内容处: 按下鼠标, range范围不会变
+     *
+     *
+     * 8. 拖拽后抬起鼠标, 不会触发mouseup事件
+     *
+     *
+     * 9. mouseup事件setTimeout的缘由
+     * 如果不用setTimeout的话, 默认是先执行JS脚本, 再执行浏览器默认行为, 这导致
+     * 一个问题, 当页面有文本处于选中拖蓝状态, 这时在选中拖蓝处按下鼠标然后抬起鼠
+     * 标, 浏览器默认行为是取消选中拖蓝状态, 但是是在JS脚本执行之后, 此时选中拖蓝
+     * 还在还没删除, 就会生成 Popover, 但是只有执行浏览器默认行为又会把选中拖蓝删
+     * 除, 这样最终导致的结果是: 页面上没有选中拖蓝, 但是有一个 Popover
+     *
+     * 10. 目前想到的没有去做的, 可能也是不打算做的
+     * 第一是没有考虑shift+鼠标选中的逻辑, 其实我不打算做了, 我打算先keep it stupid
+     * 第二是Selection.anchorNode和Selection.focusNode可能是元素节点, 也可能
+     * 是文本节点, determinePopover()函数没有考虑是文本节点的情况 (而且我经过调
+     * 测, 发现选择文本时不会出现Selection.anchorNode或Selection.focusNode是
+     * 文本节点的情况, 但是在两端之间的空白处点击时出现了Selection.anchorNode或
+     * Selection.focusNode是文本节点的情况, 有点奇怪的感觉), 直接在mouseup和
+     * dragend中用Selection.isCollapsed给挡掉了
      */
 
-    /* Popover控件删除 */
-    $(document).mousedown(function(){
-        setTimeout(function () {
-            mdown();
-        }, 150);
+
+    /* 监听鼠标按下 */
+    $(document).on('mousedown', function () {
+        removePopover();
     });
 
-    /* Popover控件生成 */
-    $(document).mouseup(function(){
+
+    /* 监听鼠标抬起 */
+    $(document).on('mouseup dragend', function () {
+        // 设置 setTimeout, 原因见上面第9条
         setTimeout(function () {
-            mup()
-        }, 100);
+            /* 鼠标只是点击了页面空白处而没有选中任何内容, 不要生成 Popover*/
+            let sel = window.getSelection();
+            if (sel.isCollapsed) {
+                return;
+            }
+
+            /* 创建Popover */
+            createPopover();
+
+            /* 确定位置 */
+            let popover = document.getElementById("selection-popover");
+            let position = determinePopover();
+
+            /* 设定位置 */
+            if (position.left !== undefined) {
+                popover.style.left = position.left + "px";
+            }
+            if (position.right !== undefined) {
+                popover.style.right = position.right + "px";
+            }
+            if (position.top !== undefined) {
+                popover.style.top = position.top + "px";
+            }
+            if (position.bottom !== undefined) {
+                popover.style.bottom = position.bottom + "px";
+            }
+        }, 0)
     });
 });
-
-
-/**
- * 鼠标按下
- */
-function mdown() {
-    /*
-     * 需要判定的情况是点击当前页面已有的高亮时，按下鼠标是不会清除高亮状态的
-     */
-
-    let sel = window.getSelection();
-    // Selection的anchorNode和focusNode都可能为null, 比如当选中的文本是iframe时 (请参阅 https://developer.mozilla.org/en-US/docs/Web/API/Selection),
-    // 再比如有一次我在调试时无意的也打印出为null的情形不过现在难以复现。至于如果选取的是iframe的内容那该怎么办? 这个问题, 后面再考虑, 至少要给用户提示, 然后给一个选项让
-    // 用户手动添加
-    if (sel.isCollapsed || sel.anchorNode === null || sel.focusNode === null) {
-        removePopover();
-    }
-}
-
-
-/**
- * 鼠标抬起
- */
-function mup() {
-    /*
-     * 首先在默认位置即页面最下方生成popover, 然后再重新放置popover
-     *
-     * 为什么不先确定popover的位置再生成? 因为不生成则无法获取到popover的宽高, 进而以致无
-     * 法在角落里调整popover的位置, 也就是不先生成popover获取到宽高.
-     * 注: 在css样式中设定popover显示方式为"absolute", "inline-block", 这样就可以设定
-     * popover宽度为实际足够宽度, 而不会横跨整个浏览器的宽度
-     *
-     * 为什么鼠标抬起时需要检测是否有内容? 场景: 页面有选中内容, 然后去点击选中的内容，在鼠
-     * 标抬起时，高亮会消失，此时根据popover跟随selection原则，应该删除掉Popover
-     */
-
-    /* 拦截: 鼠标只是点击而未选取内容、鼠标选取的是诸如iframe的内容 */
-    let sel = window.getSelection();
-    // Selection的anchorNode和focusNode都可能为null, 比如当选中的文本是iframe时 (请参阅 https://developer.mozilla.org/en-US/docs/Web/API/Selection),
-    // 再比如有一次我在调试时无意的也打印出为null的情形不过现在难以复现。至于如果选取的是iframe的内容那该怎么办? 这个问题, 后面再考虑, 至少要给用户提示, 然后给一个选项让
-    // 用户手动添加
-    if (sel.isCollapsed || sel.anchorNode === null || sel.focusNode === null) {
-        removePopover();
-        return;
-    }
-
-    createPopover();
-
-    /* 确定位置 */
-    let popover = document.getElementById("selection-popover");
-    let position = determinePopover();
-
-    /* 设定位置 */
-    if (position.left !== undefined) {
-        popover.style.left = position.left + "px";
-    }
-    if (position.right !== undefined) {
-        popover.style.right = position.right + "px";
-    }
-    if (position.top !== undefined) {
-        popover.style.top = position.top + "px";
-    }
-    if (position.bottom !== undefined) {
-        popover.style.bottom = position.bottom + "px";
-    }
-}
 
 
 /**
  * 删除 Popover
  */
 function removePopover() {
-    let po = $("#selection-popover")[0]; // 每次都是仅有一个Popover存在
+    let po = $("#selection-popover")[0];
     if (po !== undefined) {
         po.parentNode.removeChild(po);
     }
@@ -185,13 +195,15 @@ function determinePopover() {
         return (comparePosition === 0 && sel.anchorOffset > sel.focusOffset) || (comparePosition === Node.DOCUMENT_POSITION_PRECEDING);
     })();
 
-    /* 根据光标移动的方向, 判定popover的位置 */
-    let left, right, bottom, top;
+    /* 根据选中文本时的光标移动方向, 判定Popover的位置 */
+    let left;
+    let top;
     let popover = document.getElementById("selection-popover");
     let popoverHeight = $(popover).outerHeight();
+    let popoverWidth = $(popover).outerWidth();
     // if 鼠标向左选中内容, else 鼠标向右选中内容
     if (backward) {
-        // 处理边界条件: 选择的终点位置是介于一个段落和另一个段落之间的空白时
+        /* 处理边界条件: 选择的终点位置是介于一个段落和另一个段落之间的空白时 */
         if (sel.focusOffset === focusNode.length) {
             let boundaryNode = sel.focusNode.parentNode.nextElementSibling.childNodes[0];
             range.setStart(boundaryNode, 0);
@@ -200,17 +212,43 @@ function determinePopover() {
         }
         left = rect.left + pageXOffset;
         top = rect.top - popoverHeight + pageYOffset;
-        return {left: left, top: top};
     } else {
-        // 处理边界条件: 选择的终点位置是介于一个段落和另一个段落之间的空白时
+        /* 处理边界条件: 选择的终点位置是介于一个段落和另一个段落之间的空白时 */
         if (sel.focusOffset === 0) {
-            let boundaryNode = window.getSelection().focusNode.previousElementSibling.lastChild;
+            let boundaryNode = sel.focusNode.previousElementSibling.lastChild;
             range.setStart(boundaryNode, boundaryNode.length);
             range.setEnd(boundaryNode, boundaryNode.length);
             rect = range.getBoundingClientRect();
         }
         left = rect.right;
         top = rect.bottom + pageYOffset;
-        return {left: left, top: top};
+    }
+
+    /* 文字太靠近四条边时, Popover位置需要调整以防只能看到部分Popover */
+    let windowSize = getWindowSize();
+    if (top < 0) {
+        top = top + popoverHeight + rect.height;
+    }
+    if (top + popoverHeight > windowSize.h) {
+        top = top - popoverHeight - rect.height;
+    }
+    if (left + popoverWidth > windowSize.w) {
+        left = windowSize.w - popoverWidth;
+    }
+
+    return {left: left, top: top};
+}
+
+
+/**
+ * 获取浏览器文档窗口宽高
+ * @returns {{w: number, h: number}}
+ */
+function getWindowSize() {
+    let windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    let windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+    return {
+        w: windowWidth,
+        h: windowHeight
     }
 }
