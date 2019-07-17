@@ -261,10 +261,10 @@ function determinePopover() {
 
     /* 文字太靠近四条边时, Popover位置需要调整以防只能看到部分Popover */
     let windowSize = getWindowSize();
-    if (top < 0) {
+    if (top - pageYOffset < 0) {
         top = top + popoverHeight + rect.height;
     }
-    if (top + popoverHeight > windowSize.h) {
+    if (top + popoverHeight > windowSize.h + pageYOffset) {
         top = top - popoverHeight - rect.height;
     }
     if (left + popoverWidth > windowSize.w) {
