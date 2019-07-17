@@ -126,7 +126,9 @@ $(function() {
 
     /* 监听鼠标按下 */
     $(document).on('mousedown', function () {
-        removePopover();
+        setTimeout(function () {
+            removePopover();
+        }, 0);
     });
 
 
