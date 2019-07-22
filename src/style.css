@@ -2,7 +2,7 @@
 
 #selection-popover {
     border: solid 1px #C5C5C5;
-    background-color: white;
+    background: white;
     border-radius: 5px;
     box-shadow: 1px 1px 5px 2px #D4D4D4;
 
@@ -10,32 +10,24 @@
     display: inline-block;
 }
 
-.circle {
+
+/* 高亮颜色 */
+[data-hl-color="color1"] { background-color: #FECAD7; }
+[data-hl-color="color2"] { background-color: #D2FD6C; }
+[data-hl-color="color3"] { background-color: #FEDD78; }
+
+
+/* Popover里面的圆圈样式 */
+.popover-circle[data-hl-color="color1"] { border: 1px solid #F1C0CC; }
+.popover-circle[data-hl-color="color2"] { border: 1px solid #C8F066; }
+.popover-circle[data-hl-color="color3"] { border: 1px solid #F1D271; }
+
+.popover-circle {
     width: 18px;
     height: 18px;
-
     border-radius: 50%;
     display: inline-block;
     margin-left: 5px;
     margin-right: 5px;
     margin-top: 5px;
-}
-
-.circle-red {
-    background-color: #FECAD7;
-    border: 1px solid #F1C0CC;
-}
-
-.circle-green {
-    background-color: #D2FD6C;
-    border: 1px solid #C8F066;
-}
-
-.circle-yellow {
-    background-color: #FEDD78;
-    border: 1px solid #F1D271;
-}
-
-.circle-more {
-    background-color: wheat;
 }
