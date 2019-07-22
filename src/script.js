@@ -125,7 +125,13 @@ $(function() {
 
 
     /* 监听鼠标按下 */
-    $(document).on('mousedown', function () {
+    $(document).on('mousedown', function (e) {
+        /* 当mousedown在Popover时, 不删除Popover */
+        if ($(e.target).hasClass('circle') || e.target.id === "selection-popover") {
+            // 如果不想消失高亮状态, 打开下面的代码
+            // e.preventDefault();
+            return;
+        }
         setTimeout(function () {
             removePopover();
         }, 0);
@@ -133,7 +139,12 @@ $(function() {
 
 
     /* 监听鼠标抬起 */
-    $(document).on('mouseup dragend', function () {
+    $(document).on('mouseup dragend', function (e) {
+        /* 当mouseup在Popover时, 不生成Popover */
+        if ($(e.target).hasClass('circle') || e.target.id === "selection-popover") {
+            return;
+        }
+
         // 设置 setTimeout, 原因见上面第9条
         setTimeout(function () {
             /* 鼠标只是点击了页面空白处而没有选中任何内容, 不要生成 Popover*/

@@ -1,6 +1,8 @@
+@charset "utf-8";
+
 #selection-popover {
     border: solid 1px #C5C5C5;
-    background: white;
+    background-color: white;
     border-radius: 5px;
     box-shadow: 1px 1px 5px 2px #D4D4D4;
 
@@ -20,20 +22,20 @@
 }
 
 .circle-red {
-    background: #FECAD7;
+    background-color: #FECAD7;
     border: 1px solid #F1C0CC;
 }
 
 .circle-green {
-    background: #D2FD6C;
+    background-color: #D2FD6C;
     border: 1px solid #C8F066;
 }
 
 .circle-yellow {
-    background: #FEDD78;
+    background-color: #FEDD78;
     border: 1px solid #F1D271;
 }
 
 .circle-more {
-    background: wheat;
+    background-color: wheat;
 }
