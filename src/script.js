@@ -124,6 +124,9 @@ $(document).on('mousedown', function () {
 
 /** 监听鼠标抬起、鼠标拖拽结束 */
 $(document).on('mouseup dragend', function (e) {
+    /* explain说明: 为什么需要监听dragend, 因为当点击拖蓝区域然后拖拽时, 拖拽结
+    束后拖蓝高亮还是先在在页面上的 */
+
     let mouseupScreenX = e.screenX;
 
     /* 设置 setTimeout, 原因见上述说明第9条 */
@@ -203,7 +206,8 @@ function determinePopover(mouseupScreenX) {
      * 个字符, 但是如果文本节点可能是N个回车加上M个空格, N大于等于1, M也是大于等于1, 就是
      * 一个在页面不会显示的节点 (关于节点和HTML源码的关系, 请查看我的印象笔记的
      * "DOM Tree & Node"). 所以暂时用能实现的并且是可靠的方法实现. 现在采用的方法除了双击
-     * 和三击不能标记结束点外, 其他情况都可以标记结束点
+     * 和三击不能标记结束点外, 其他情况都可以标记结束点, 而且让popover贴近getBoundingClientRect
+     * 本身也是标记选中的结束的水平线
      *
      * Note:
      * - DomRect的left, right, bottom, top是以视口原点为参考原点 (视口就是显示网页文档
